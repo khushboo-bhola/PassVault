@@ -25,7 +25,7 @@ int main()
             break;
 
         case 2:
-            printf("\nView Passwords selected.\n");
+            viewPasswords();
             break;
 
         case 3:

@@ -10,5 +10,6 @@ typedef struct
 } Password;
 
 void addPassword();
+void viewPasswords();
 
 #endif
