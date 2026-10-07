@@ -3,21 +3,22 @@
 
 void addPassword()
 {
-    char website[100];
-    char username[100];
-    char password[100];
+    Password entry;
 
     printf("\nEnter website: ");
-    scanf("%99s", website);
+    scanf("%99s", entry.website);
 
     printf("Enter username: ");
-    scanf("%99s", username);
+    scanf("%99s", entry.username);
 
     printf("Enter password: ");
-    scanf("%99s", password);
+    scanf("%99s", entry.password);
+
+    entry.id = 1;
 
     printf("\nPassword details:\n");
-    printf("Website: %s\n", website);
-    printf("Username: %s\n", username);
-    printf("Password: %s\n", password);
+    printf("ID: %d\n", entry.id);
+    printf("Website: %s\n", entry.website);
+    printf("Username: %s\n", entry.username);
+    printf("Password: %s\n", entry.password);
 }
