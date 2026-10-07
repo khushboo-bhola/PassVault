@@ -92,3 +92,59 @@ void searchPassword()
         printf("\nNo password found for %s.\n", searchWebsite);
     }
 }
+
+void deletePassword()
+{
+    FILE *file;
+    FILE *tempFile;
+
+    Password entry;
+    int deleteId;
+    int found = 0;
+
+    printf("\nEnter ID to delete: ");
+    scanf("%d", &deleteId);
+
+    file = fopen("data/passwords.dat", "rb");
+
+    if (file == NULL)
+    {
+        printf("\nNo passwords found.\n");
+        return;
+    }
+
+    tempFile = fopen("data/temp.dat", "wb");
+
+    if (tempFile == NULL)
+    {
+        printf("\nError creating temporary file.\n");
+        fclose(file);
+        return;
+    }
+
+    while (fread(&entry, sizeof(Password), 1, file) == 1)
+    {
+        if (entry.id == deleteId)
+        {
+            found = 1;
+            continue;
+        }
+
+        fwrite(&entry, sizeof(Password), 1, tempFile);
+    }
+
+    fclose(file);
+    fclose(tempFile);
+
+    remove("data/passwords.dat");
+    rename("data/temp.dat", "data/passwords.dat");
+
+    if (found)
+    {
+        printf("\nPassword deleted successfully.\n");
+    }
+    else
+    {
+        printf("\nPassword with ID %d not found.\n", deleteId);
+    }
+}

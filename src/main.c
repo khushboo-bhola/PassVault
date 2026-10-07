@@ -33,7 +33,7 @@ int main()
             break;
 
         case 4:
-            printf("\nDelete Password selected.\n");
+            deletePassword();
             break;
 
         case 5:
