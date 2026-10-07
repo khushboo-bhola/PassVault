@@ -29,7 +29,7 @@ int main()
             break;
 
         case 3:
-            printf("\nSearch Password selected.\n");
+            searchPassword();
             break;
 
         case 4:

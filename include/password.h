@@ -11,5 +11,6 @@ typedef struct
 
 void addPassword();
 void viewPasswords();
+void searchPassword();
 
 #endif
