@@ -4,5 +4,6 @@
 #include "password.h"
 
 void savePassword(Password entry);
+int getNextId();
 
 #endif

@@ -15,7 +15,7 @@ void addPassword()
     printf("Enter password: ");
     scanf("%99s", entry.password);
 
-    entry.id = 1;
+    entry.id = getNextId();
 
     printf("\nPassword details:\n");
     printf("ID: %d\n", entry.id);
