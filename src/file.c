@@ -9,8 +9,7 @@ int getNextId()
 
     file = fopen("data/passwords.dat", "rb");
 
-    if (file == NULL)
-    {
+    if (file == NULL){
         return 1;
     }
 

@@ -5,9 +5,7 @@ int main()
 {
     int choice;
 
-    printf("=================================\n");
-    printf("          PASSVAULT\n");
-    printf("=================================\n");
+    printf("PASSVAULT:\n");
 
     printf("\n1. Add Password\n");
     printf("2. View Passwords\n");
