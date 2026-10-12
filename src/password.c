@@ -1,150 +1,160 @@
+
 #include <stdio.h>
 #include <string.h>
+#include <openssl/crypto.h>
+
 #include "../include/password.h"
 #include "../include/file.h"
+#include "../include/utils.h"
 
-void addPassword()
+void addPassword(void)
 {
-    Password entry;
+    if (vaultCount >= MAX_PASSWORDS) {
+        printf("Vault is full.\n");
+        return;
+    }
+
+    Password entry = {0};
 
     printf("\nEnter website: ");
-    scanf("%99s", entry.website);
+    if (scanf("%99s", entry.website) != 1) {
+        clearInputBuffer();
+        printf("Invalid website.\n");
+        return;
+    }
 
     printf("Enter username: ");
-    scanf("%99s", entry.username);
+    if (scanf("%99s", entry.username) != 1) {
+        clearInputBuffer();
+        printf("Invalid username.\n");
+        return;
+    }
 
     printf("Enter password: ");
-    scanf("%99s", entry.password);
+    if (scanf("%99s", entry.password) != 1) {
+        clearInputBuffer();
+        OPENSSL_cleanse(&entry, sizeof(entry));
+        printf("Invalid password.\n");
+        return;
+    }
 
     entry.id = getNextId();
 
-    printf("\nPassword details:\n");
-    printf("ID: %d\n", entry.id);
-    printf("Website: %s\n", entry.website);
-    printf("Username: %s\n", entry.username);
-    printf("Password: %s\n", entry.password);
+    if (entry.id <= 0) {
+        printf("Could not generate an ID.\n");
+        OPENSSL_cleanse(&entry, sizeof(entry));
+        return;
+    }
 
-    savePassword(entry);
+    if (!savePassword(entry)) {
+        printf("Password was not saved.\n");
+        OPENSSL_cleanse(&entry, sizeof(entry));
+        return;
+    }
+
+    vault[vaultCount++] = entry;
+
+    printf("Password saved successfully. ID: %d\n", entry.id);
+    OPENSSL_cleanse(&entry, sizeof(entry));
 }
 
-void viewPasswords()
+void viewPasswords(void)
 {
-    FILE *file;
-    Password entry;
-
-    file = fopen("data/passwords.dat", "rb");
-
-    if (file == NULL)
-    {
+    if (vaultCount == 0) {
         printf("\nNo passwords found.\n");
         return;
     }
 
-    printf("\n========== SAVED PASSWORDS ==========\n");
+    printf("\n==== SAVED PASSWORDS ====\n");
 
-    while (fread(&entry, sizeof(Password), 1, file) == 1)
-    {
-        printf("\nID: %d\n", entry.id);
-        printf("Website: %s\n", entry.website);
-        printf("Username: %s\n", entry.username);
-        printf("Password: %s\n", entry.password);
+    for (int i = 0; i < vaultCount; i++) {
+        printf("\nID: %d\n", vault[i].id);
+        printf("Website: %s\n", vault[i].website);
+        printf("Username: %s\n", vault[i].username);
+        printf("Password: %s\n", vault[i].password);
     }
-
-    fclose(file);
 }
 
-void searchPassword()
+void searchPassword(void)
 {
-    FILE *file;
-    Password entry;
-    char searchWebsite[100];
-    int found = 0;
+    char website[100];
 
     printf("\nEnter website to search: ");
-    scanf("%99s", searchWebsite);
 
-    file = fopen("data/passwords.dat", "rb");
-
-    if (file == NULL)
-    {
-        printf("\nNo passwords found.\n");
+    if (scanf("%99s", website) != 1) {
+        clearInputBuffer();
+        printf("Invalid website.\n");
         return;
     }
 
-    while (fread(&entry, sizeof(Password), 1, file) == 1)
-    {
-        if (strcmp(entry.website, searchWebsite) == 0)
-        {
-            printf("\nPassword found:\n");
-            printf("ID: %d\n", entry.id);
-            printf("Website: %s\n", entry.website);
-            printf("Username: %s\n", entry.username);
-            printf("Password: %s\n", entry.password);
-
-            found = 1;
-        }
-    }
-
-    fclose(file);
-
-    if (found == 0)
-    {
-        printf("\nNo password found for %s.\n", searchWebsite);
-    }
-}
-
-void deletePassword()
-{
-    FILE *file;
-    FILE *tempFile;
-
-    Password entry;
-    int deleteId;
     int found = 0;
 
-    printf("\nEnter ID to delete: ");
-    scanf("%d", &deleteId);
-
-    file = fopen("data/passwords.dat", "rb");
-
-    if (file == NULL)
-    {
-        printf("\nNo passwords found.\n");
-        return;
-    }
-
-    tempFile = fopen("data/temp.dat", "wb");
-
-    if (tempFile == NULL)
-    {
-        printf("\nError creating temporary file.\n");
-        fclose(file);
-        return;
-    }
-
-    while (fread(&entry, sizeof(Password), 1, file) == 1)
-    {
-        if (entry.id == deleteId)
-        {
+    for (int i = 0; i < vaultCount; i++) {
+        if (strcmp(vault[i].website, website) == 0) {
+            printf("\nPassword found:\n");
+            printf("ID: %d\n", vault[i].id);
+            printf("Website: %s\n", vault[i].website);
+            printf("Username: %s\n", vault[i].username);
+            printf("Password: %s\n", vault[i].password);
             found = 1;
-            continue;
         }
-
-        fwrite(&entry, sizeof(Password), 1, tempFile);
     }
 
-    fclose(file);
-    fclose(tempFile);
+    if (!found)
+        printf("No password found for %s.\n", website);
+}
 
-    remove("data/passwords.dat");
-    rename("data/temp.dat", "data/passwords.dat");
+void deletePassword(void)
+{
+    int deleteId;
 
-    if (found)
-    {
-        printf("\nPassword deleted successfully.\n");
+    printf("\nEnter ID to delete: ");
+
+    if (scanf("%d", &deleteId) != 1) {
+        clearInputBuffer();
+        printf("Invalid ID.\n");
+        return;
     }
-    else
-    {
-        printf("\nPassword with ID %d not found.\n", deleteId);
+
+    int index = -1;
+
+    for (int i = 0; i < vaultCount; i++) {
+        if (vault[i].id == deleteId) {
+            index = i;
+            break;
+        }
     }
+
+    if (index == -1) {
+        printf("Password with ID %d not found.\n", deleteId);
+        return;
+    }
+
+    Password removed = vault[index];
+
+    for (int i = index; i < vaultCount - 1; i++)
+        vault[i] = vault[i + 1];
+
+    vaultCount--;
+
+    const char *masterPassword = getenv("PASSVAULT_MASTER");
+
+    if (masterPassword == NULL ||
+        !saveVault(masterPassword)) {
+        /* Restore the record if persistent deletion fails. */
+        for (int i = vaultCount; i > index; i--)
+            vault[i] = vault[i - 1];
+
+        vault[index] = removed;
+        vaultCount++;
+
+        OPENSSL_cleanse(&removed, sizeof(removed));
+        printf("Deletion failed. Original record restored.\n");
+        return;
+    }
+
+    OPENSSL_cleanse(&vault[vaultCount], sizeof(Password));
+    OPENSSL_cleanse(&removed, sizeof(removed));
+
+    printf("Password deleted successfully.\n");
 }

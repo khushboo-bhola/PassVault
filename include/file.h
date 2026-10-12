@@ -3,7 +3,11 @@
 
 #include "password.h"
 
-void savePassword(Password entry);
-int getNextId();
+int initializeVault(const char *masterPassword);
+int saveVault(const char *masterPassword);
+int loadVault(const char *masterPassword);
+
+int savePassword(Password entry);
+int getNextId(void);
 
 #endif
